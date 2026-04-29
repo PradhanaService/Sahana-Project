@@ -1,14 +1,19 @@
 How to run paste the commands one by one .
 
-npm install
-npm run dev
+1.npm install
+
+2.npm run dev
+
 Build for production:
 
-npm run build
-npm run preview
+
+1.npm run build
+
+2.npm run preview
+
 Useful local commands:
 
-npm run dev
-npm run build
-npm run lint
-npm run preview
+1.npm run dev
+2.npm run build
+3.npm run lint
+4.npm run preview
