@@ -1,5 +1,5 @@
 import { SendHorizontal } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 function formatTimestamp(timestamp) {
   if (!timestamp?.seconds) {
@@ -17,6 +17,8 @@ function formatTimestamp(timestamp) {
 function CommentPanel({ activeIssue, comments, currentUser, onSubmitComment }) {
   const [draft, setDraft] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   const sortedComments = useMemo(
     () =>
@@ -28,39 +30,58 @@ function CommentPanel({ activeIssue, comments, currentUser, onSubmitComment }) {
     [comments],
   );
 
+  useEffect(() => {
+    setDraft('');
+    setError('');
+    setNotice('');
+  }, [activeIssue?.id]);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const body = draft.trim();
 
     if (!body || !activeIssue) {
+      setError(activeIssue ? 'Write a comment before sending.' : 'Select an issue before sending a comment.');
       return;
     }
 
     setSubmitting(true);
+    setError('');
+    setNotice('');
 
     try {
       await onSubmitComment(body);
       setDraft('');
+      setNotice('Comment sent.');
+    } catch (submitError) {
+      setError(submitError?.message || 'Unable to send comment right now.');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleKeyDown = (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
+    }
+  };
+
   return (
-    <section className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
+    <section className="panel p-5">
       <div className="mb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Comments</p>
-        <h2 className="mt-1 text-lg font-semibold text-white">Issue conversation</h2>
-        <p className="mt-1 text-sm leading-6 text-gray-500">
+        <p className="eyebrow">Comments</p>
+        <h2 className="mt-2 text-xl font-semibold text-slate-900">Issue conversation</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
           Real-time chat-style thread for the selected issue with author and timestamp.
         </p>
       </div>
 
       {activeIssue ? (
         <>
-          <div className="mb-4 rounded-xl border border-gray-800 bg-gray-950 p-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">{activeIssue.code}</p>
-            <h3 className="mt-1 text-base font-semibold text-white">{activeIssue.title}</h3>
+          <div className="mb-4 rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">{activeIssue.code}</p>
+            <h3 className="mt-1 text-base font-semibold text-slate-900">{activeIssue.title}</h3>
           </div>
 
           <div className="flex max-h-[22rem] flex-col gap-2 overflow-y-auto pr-1">
@@ -70,26 +91,26 @@ function CommentPanel({ activeIssue, comments, currentUser, onSubmitComment }) {
               return (
                 <div key={comment.id} className={`flex ${ownComment ? 'justify-end' : 'justify-start'}`}>
                   <div
-                    className={`max-w-[88%] rounded-xl px-3 py-2.5 shadow-lg shadow-black/10 ${
-                      ownComment ? 'bg-blue-600 text-white' : 'border border-gray-800 bg-gray-950 text-white'
+                    className={`max-w-[88%] rounded-2xl px-3 py-2.5 shadow-lg shadow-black/10 ${
+                      ownComment ? 'border border-cyan-200 bg-cyan-50 text-slate-900' : 'border border-slate-200 bg-white text-slate-900'
                     }`}
                   >
                     <div className="mb-1 flex items-center justify-between gap-3">
-                      <span className={`text-xs font-semibold uppercase tracking-[0.12em] ${ownComment ? 'text-blue-100' : 'text-gray-400'}`}>
+                      <span className={`font-mono text-xs font-semibold uppercase tracking-[0.12em] ${ownComment ? 'text-cyan-700' : 'text-slate-500'}`}>
                         {comment.authorName}
                       </span>
-                      <span className={`text-[11px] ${ownComment ? 'text-blue-100/80' : 'text-gray-500'}`}>
+                      <span className={`font-mono text-[11px] ${ownComment ? 'text-cyan-700/80' : 'text-slate-500'}`}>
                         {formatTimestamp(comment.createdAt)}
                       </span>
                     </div>
-                    <p className={`text-sm leading-6 ${ownComment ? 'text-white' : 'text-gray-200'}`}>{comment.body}</p>
+                    <p className="text-sm leading-6 text-slate-800">{comment.body}</p>
                   </div>
                 </div>
               );
             })}
 
             {!sortedComments.length ? (
-              <div className="rounded-xl border border-dashed border-gray-800 bg-gray-950 p-4 text-center text-sm text-gray-500">
+              <div className="rounded-[22px] border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500">
                 No comments yet. Start the conversation for this issue.
               </div>
             ) : null}
@@ -101,21 +122,32 @@ function CommentPanel({ activeIssue, comments, currentUser, onSubmitComment }) {
                 rows="2"
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Write a comment..."
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white outline-none transition hover:border-gray-600 focus:ring-2 focus:ring-blue-500"
+                className="field-input min-h-[88px] resize-none"
               />
             </label>
             <button
               type="submit"
               disabled={submitting || !draft.trim()}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-700 text-white transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <SendHorizontal size={18} />
             </button>
           </form>
+          {error ? (
+            <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              {error}
+            </div>
+          ) : null}
+          {notice ? (
+            <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              {notice}
+            </div>
+          ) : null}
         </>
       ) : (
-        <div className="rounded-xl border border-dashed border-gray-800 bg-gray-950 p-5 text-center text-sm text-gray-500">
+        <div className="rounded-[24px] border border-dashed border-slate-200 bg-slate-50 p-5 text-center text-sm text-slate-500">
           Select an issue card on the board to open its comments.
         </div>
       )}

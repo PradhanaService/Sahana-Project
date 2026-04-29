@@ -14,9 +14,8 @@ const buildInitialState = (currentUser) => ({
 function CreateProjectModal({ isOpen, onClose, onCreateProject, users, currentUser }) {
   const [form, setForm] = useState(buildInitialState(currentUser));
   const [submitting, setSubmitting] = useState(false);
-  const fieldClassName =
-    'w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white outline-none transition hover:border-gray-600 focus:ring-2 focus:ring-blue-500';
-  const labelClassName = 'space-y-1 text-sm text-gray-400';
+  const fieldClassName = 'field-input';
+  const labelClassName = 'space-y-1 text-sm text-slate-600';
 
   if (!isOpen) {
     return null;
@@ -52,12 +51,12 @@ function CreateProjectModal({ isOpen, onClose, onCreateProject, users, currentUs
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/85 px-4 py-6 backdrop-blur-sm">
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 shadow-2xl shadow-black/50">
-        <div className="border-b border-gray-800 px-5 py-4 sm:px-6">
-          <p className="text-sm text-gray-400">Create Project</p>
-          <h2 className="mt-1 text-lg font-semibold text-white">New project workspace</h2>
-          <p className="mt-1 text-sm text-gray-500">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/18 px-4 py-6 backdrop-blur-sm">
+      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-300/60">
+        <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
+          <p className="text-sm text-slate-500">Create Project</p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-900">New project workspace</h2>
+          <p className="mt-1 text-sm text-slate-600">
             Keep the form compact, pick the division, and choose which employees can receive tasks.
           </p>
         </div>
@@ -140,12 +139,12 @@ function CreateProjectModal({ isOpen, onClose, onCreateProject, users, currentUs
 
           <div className="space-y-3">
             <div>
-              <p className="text-lg font-semibold text-white">Team members</p>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="text-lg font-semibold text-slate-900">Team members</p>
+              <p className="mt-1 text-sm text-slate-600">
                 Choose who should receive tasks in this project. The project manager is added automatically.
               </p>
             </div>
-            <div className="grid max-h-56 gap-2 overflow-y-auto rounded-xl border border-gray-800 bg-gray-950 p-3">
+            <div className="grid max-h-56 gap-2 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3">
               {users
                 .filter((user) => user.id !== currentUser?.id)
                 .map((user) => {
@@ -156,22 +155,22 @@ function CreateProjectModal({ isOpen, onClose, onCreateProject, users, currentUs
                       key={user.id}
                       className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2 transition ${
                         selected
-                          ? 'border-blue-500 bg-blue-900/30'
-                          : 'border-gray-800 bg-gray-900 hover:border-gray-700'
+                          ? 'border-cyan-300 bg-cyan-50'
+                          : 'border-slate-200 bg-white hover:border-slate-300'
                       }`}
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-white">{user.name}</p>
-                        <p className="mt-0.5 text-xs uppercase tracking-[0.14em] text-gray-500">
+                        <p className="truncate text-sm font-semibold text-slate-900">{user.name}</p>
+                        <p className="mt-0.5 text-xs uppercase tracking-[0.14em] text-slate-500">
                           {user.role} | {user.division || user.team}
                         </p>
-                        <p className="mt-0.5 text-xs text-gray-500">{user.companyName || 'Sprintforge'}</p>
+                        <p className="mt-0.5 text-xs text-slate-500">{user.companyName || 'Sprintforge'}</p>
                       </div>
                       <input
                         type="checkbox"
                         checked={selected}
                         onChange={(event) => toggleMember(user.id, event.target.checked)}
-                        className="h-4 w-4 rounded border-gray-700 bg-gray-800 text-blue-500 focus:ring-2 focus:ring-blue-500"
+                        className="h-4 w-4 rounded border-slate-300 bg-white text-cyan-700 focus:ring-2 focus:ring-cyan-500"
                       />
                     </label>
                   );
@@ -180,19 +179,19 @@ function CreateProjectModal({ isOpen, onClose, onCreateProject, users, currentUs
           </div>
           </div>
 
-          <div className="sticky bottom-0 border-t border-gray-800 bg-gray-900/95 px-5 py-4 sm:px-6">
+          <div className="sticky bottom-0 border-t border-slate-200 bg-white/95 px-5 py-4 sm:px-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-200 transition hover:border-gray-600 hover:bg-gray-700"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-0"
+                className="btn-primary mt-4 w-full sm:mt-0"
               >
                 {submitting ? 'Creating...' : 'Create Project'}
               </button>

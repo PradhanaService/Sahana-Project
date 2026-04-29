@@ -9,39 +9,49 @@ import EmptyState from './EmptyState';
 const columns = ['To Do', 'In Progress', 'Done'];
 
 const statusClasses = {
-  'To Do': 'border-slate-400/20 bg-slate-500/15 text-slate-300',
-  'In Progress': 'border-cyan-400/20 bg-cyan-500/15 text-cyan-200',
-  Done: 'border-emerald-400/20 bg-emerald-500/15 text-emerald-200',
+  'To Do': 'border-slate-200 bg-slate-100 text-slate-700',
+  'In Progress': 'border-cyan-200 bg-cyan-50 text-cyan-700',
+  Done: 'border-emerald-200 bg-emerald-50 text-emerald-700',
 };
 
 function IssueCard({ issue, assignee, dragging = false }) {
   return (
     <motion.article
       layout
-      className={`rounded-lg border border-gray-800 bg-gray-950 p-3 shadow-lg shadow-black/10 transition ${
-        dragging ? 'rotate-1 border-blue-500/40 bg-gray-900 shadow-2xl shadow-blue-500/10' : 'hover:border-gray-700 hover:bg-gray-900'
+      className={`rounded-2xl border border-slate-200 bg-white p-3 shadow-md shadow-slate-200/70 transition ${
+        dragging ? 'rotate-1 border-cyan-300 bg-cyan-50 shadow-xl shadow-cyan-100/70' : 'hover:border-slate-300 hover:bg-slate-50'
       }`}
     >
       <div className="mb-2 flex items-center gap-2">
-        <span className="rounded-full border border-gray-700 bg-gray-800 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-300">
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
           {issue.code}
         </span>
-        <span className={`rounded-full border px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${statusClasses[issue.status]}`}>
+        <span className={`rounded-full border px-2 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] ${statusClasses[issue.status]}`}>
           {issue.status}
         </span>
+        {issue.memberReportedDone ? (
+          <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-700">
+            Ready for review
+          </span>
+        ) : null}
+        {issue.managerConfirmedDone ? (
+          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
+            Confirmed
+          </span>
+        ) : null}
       </div>
 
-      <h3 className="text-sm font-semibold text-white">{issue.title}</h3>
+      <h3 className="text-sm font-semibold text-slate-900">{issue.title}</h3>
 
       <div className="mt-3 flex items-center justify-between gap-3">
-        <div className="rounded-lg border border-gray-800 bg-gray-900 px-2.5 py-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500">Assignee</p>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Assignee</p>
           <div className="mt-1 flex items-center gap-2">
             <UserRound size={14} className="text-cyan-300" />
-            <span className="text-sm font-medium text-white">{assignee?.name ?? 'Unassigned'}</span>
+            <span className="text-sm font-medium text-slate-900">{assignee?.name ?? 'Unassigned'}</span>
           </div>
         </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-800 text-cyan-300">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-cyan-700">
           <CircleDot size={16} />
         </div>
       </div>
@@ -66,7 +76,7 @@ function SortableIssueCard({ issue, assignee, onSelectIssue, isSelected }) {
       <button
         type="button"
         onClick={() => onSelectIssue(issue.id)}
-        className={`block w-full text-left transition ${isSelected ? 'rounded-lg ring-2 ring-blue-500/60 ring-offset-0' : ''}`}
+        className={`block w-full text-left transition ${isSelected ? 'rounded-2xl ring-2 ring-cyan-400/60 ring-offset-0' : ''}`}
       >
         <IssueCard issue={issue} assignee={assignee} dragging={isDragging} />
       </button>
@@ -74,7 +84,7 @@ function SortableIssueCard({ issue, assignee, onSelectIssue, isSelected }) {
   );
 }
 
-function BoardColumn({ status, issues, users, activeIssueId, onSelectIssue }) {
+function BoardColumn({ status, issues, users, activeIssueId, onSelectIssue, emptyMessage }) {
   const { setNodeRef, isOver } = useDroppable({
     id: status,
     data: { type: 'column', status },
@@ -83,16 +93,16 @@ function BoardColumn({ status, issues, users, activeIssueId, onSelectIssue }) {
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-xl border p-3 transition ${
-        isOver ? 'border-blue-500/50 bg-blue-500/5' : 'border-gray-800 bg-gray-950'
+      className={`rounded-[26px] border p-3 transition ${
+        isOver ? 'border-cyan-300 bg-cyan-50' : 'border-slate-200 bg-slate-50/80'
       }`}
     >
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-white">{status}</p>
-          <p className="text-xs uppercase tracking-[0.12em] text-gray-500">{issues.length} issues</p>
+          <p className="text-sm font-semibold text-slate-900">{status}</p>
+          <p className="font-mono text-xs uppercase tracking-[0.12em] text-slate-500">{issues.length} issues</p>
         </div>
-        <span className={`rounded-full border px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${statusClasses[status]}`}>
+        <span className={`rounded-full border px-2 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] ${statusClasses[status]}`}>
           {status}
         </span>
       </div>
@@ -111,8 +121,8 @@ function BoardColumn({ status, issues, users, activeIssueId, onSelectIssue }) {
           ))}
 
           {!issues.length ? (
-            <div className="rounded-lg border border-dashed border-gray-800 bg-gray-900 p-4 text-center text-sm text-gray-500 transition">
-              Drop issues here
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-center text-sm text-slate-500 transition">
+              {emptyMessage}
             </div>
           ) : null}
         </div>
@@ -121,7 +131,17 @@ function BoardColumn({ status, issues, users, activeIssueId, onSelectIssue }) {
   );
 }
 
-function IssueList({ issues, users, activeProject, onCreateIssue, onMoveIssue, canCreateIssue, activeIssueId, onSelectIssue }) {
+function IssueList({
+  issues,
+  users,
+  activeProject,
+  onCreateIssue,
+  onMoveIssue,
+  canCreateIssue,
+  isAdmin,
+  activeIssueId,
+  onSelectIssue,
+}) {
   const [draggingIssueId, setDraggingIssueId] = useState(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -169,25 +189,41 @@ function IssueList({ issues, users, activeProject, onCreateIssue, onMoveIssue, c
     setDraggingIssueId(null);
   };
 
+  const emptyColumnMessage = isAdmin ? 'Create an issue, then drag it here' : 'No assigned tasks here yet';
+
   return (
-    <section className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
+    <section className="panel p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-300">Issue Management</p>
-          <h2 className="mt-1 text-lg font-semibold text-white">Kanban board</h2>
-          <p className="mt-1 text-sm leading-6 text-gray-500">
-            Drag issues between <span className="text-white">To Do</span>, <span className="text-white">In Progress</span>, and <span className="text-white">Done</span>. Drops update Firebase instantly.
+          <p className="eyebrow">Issue management</p>
+          <h2 className="mt-2 text-xl font-semibold text-slate-900">Delivery board</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            {isAdmin ? (
+              <>
+                Drag issues between <span className="text-slate-900">To Do</span>, <span className="text-slate-900">In Progress</span>, and <span className="text-slate-900">Done</span>. Drops update Firebase instantly.
+              </>
+            ) : (
+              <>
+                Open your assigned task cards here, update progress, and report finished work for manager review.
+              </>
+            )}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onCreateIssue}
-          disabled={!activeProject || !canCreateIssue}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <Plus size={16} />
-          Create Issue
-        </button>
+        {canCreateIssue ? (
+          <button
+            type="button"
+            onClick={onCreateIssue}
+            disabled={!activeProject}
+            className="btn-primary gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Plus size={16} />
+            Create Issue
+          </button>
+        ) : (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+            A project manager must create and assign tasks first.
+          </div>
+        )}
       </div>
 
       {activeProject ? (
@@ -207,6 +243,7 @@ function IssueList({ issues, users, activeProject, onCreateIssue, onMoveIssue, c
                 users={users}
                 activeIssueId={activeIssueId}
                 onSelectIssue={onSelectIssue}
+                emptyMessage={emptyColumnMessage}
               />
             ))}
           </div>
@@ -221,7 +258,7 @@ function IssueList({ issues, users, activeProject, onCreateIssue, onMoveIssue, c
             ) : null}
           </DragOverlay>
         </DndContext>
-      ) : (
+      ) : activeProject ? null : (
         <div className="mt-4">
           <EmptyState
             icon={KanbanSquare}
@@ -229,6 +266,16 @@ function IssueList({ issues, users, activeProject, onCreateIssue, onMoveIssue, c
             description="Choose a workspace from the left rail to open its board, review issue status, and move work across the flow."
           />
         </div>
+      )}
+
+      {activeProject && !issues.length ? (
+        <div className="mt-4 rounded-[24px] border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          {isAdmin
+            ? 'This project has no issues yet. Use Create Issue to add the first task, assign it to a member, and it will appear on the board immediately.'
+            : 'This project has no tasks assigned yet. Ask the project manager to create an issue and assign it to you, then you will be able to open it and mark it completed.'}
+        </div>
+      ) : (
+        null
       )}
     </section>
   );

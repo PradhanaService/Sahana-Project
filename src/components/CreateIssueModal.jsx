@@ -9,9 +9,8 @@ const initialState = {
 function CreateIssueModal({ isOpen, onClose, onCreateIssue, activeProject, users }) {
   const [form, setForm] = useState(initialState);
   const [submitting, setSubmitting] = useState(false);
-  const fieldClassName =
-    'w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white outline-none transition hover:border-gray-600 focus:ring-2 focus:ring-blue-500';
-  const labelClassName = 'space-y-1 text-sm text-gray-400';
+  const fieldClassName = 'field-input';
+  const labelClassName = 'space-y-1 text-sm text-slate-600';
 
   const projectUsers = useMemo(() => {
     if (!activeProject) {
@@ -20,9 +19,7 @@ function CreateIssueModal({ isOpen, onClose, onCreateIssue, activeProject, users
 
     return users
       .filter((user) => activeProject.memberIds?.includes(user.id))
-      .filter((user) => user.role === 'Employee')
-      .filter((user) => !activeProject.companyName || (user.companyName || 'Sprintforge') === activeProject.companyName)
-      .filter((user) => !activeProject.division || (user.division || user.team) === activeProject.division);
+      .sort((left, right) => left.name.localeCompare(right.name));
   }, [activeProject, users]);
 
   if (!isOpen) {
@@ -50,12 +47,12 @@ function CreateIssueModal({ isOpen, onClose, onCreateIssue, activeProject, users
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/85 px-4 py-6 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-2xl border border-gray-800 bg-gray-900 shadow-2xl shadow-black/50">
-        <div className="border-b border-gray-800 px-5 py-4 sm:px-6">
-          <p className="text-sm text-gray-400">Create Issue</p>
-          <h2 className="mt-1 text-lg font-semibold text-white">Add issue</h2>
-          <p className="mt-1 text-sm text-gray-500">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/18 px-4 py-6 backdrop-blur-sm">
+      <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-300/60">
+        <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
+          <p className="text-sm text-slate-500">Create Issue</p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-900">Add issue</h2>
+          <p className="mt-1 text-sm text-slate-600">
             Add a compact issue card to {activeProject ? activeProject.name : 'the selected project'}.
           </p>
         </div>
@@ -106,19 +103,19 @@ function CreateIssueModal({ isOpen, onClose, onCreateIssue, activeProject, users
           </div>
           </div>
 
-          <div className="border-t border-gray-800 bg-gray-900/95 px-5 py-4 sm:px-6">
+          <div className="border-t border-slate-200 bg-white/95 px-5 py-4 sm:px-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-200 transition hover:border-gray-600 hover:bg-gray-700"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-0"
+                className="btn-primary mt-4 w-full sm:mt-0"
               >
                 {submitting ? 'Creating...' : 'Create Issue'}
               </button>

@@ -32,6 +32,9 @@ service cloud.firestore {
     function memberIssueFieldsOnly() {
       return request.resource.data.diff(resource.data).changedKeys().hasOnly([
         'status',
+        'memberReportedDone',
+        'memberReportedDoneAt',
+        'memberReportedDoneBy',
         'updatedAt'
       ]);
     }

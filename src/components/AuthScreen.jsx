@@ -41,55 +41,62 @@ function AuthScreen({ initialError = '' }) {
     }
   };
 
-  const fieldClassName =
-    'w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white outline-none transition hover:border-gray-600 focus:ring-2 focus:ring-blue-500';
-  const labelClassName = 'block space-y-1 text-sm text-gray-400';
+  const fieldClassName = 'field-input';
+  const labelClassName = 'block space-y-2 text-sm text-slate-600';
 
   return (
-    <div className="grid min-h-screen place-items-center bg-gray-950 p-4">
-      <section className="grid w-full max-w-3xl gap-4 rounded-2xl border border-gray-800 bg-gray-900 p-4 shadow-2xl shadow-black/20 lg:grid-cols-[1fr_0.95fr] lg:p-5">
-        <div className="rounded-xl border border-gray-800 bg-gray-950 p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-300">Firebase Auth</p>
-        <h1 className="mt-3 max-w-3xl text-lg font-semibold text-white">
-          Login first. Open the dashboard by role after auth.
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-400">
-          Create a project manager or employee account with email and password. Sessions persist, and the private
-          project dashboard only opens after successful authentication.
-        </p>
+    <div className="grid min-h-screen place-items-center p-4">
+      <section className="app-shell grid w-full max-w-6xl gap-4 p-4 lg:grid-cols-[1.1fr_0.9fr] lg:p-5">
+        <div className="panel overflow-hidden p-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-200 bg-cyan-50 text-cyan-700">
+              <span className="font-mono text-sm font-semibold">SF</span>
+            </div>
+            <div>
+              <p className="eyebrow">Secure access</p>
+              <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500">Internal delivery console</p>
+            </div>
+          </div>
+          <h1 className="mt-6 max-w-3xl text-3xl font-semibold text-slate-900">
+            Project operations dashboard for modern IT teams.
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
+            Create a project manager or employee account with email and password. Sessions persist, and the private
+            project dashboard only opens after successful authentication.
+          </p>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-300">Project manager</p>
-            <h2 className="mt-2 text-lg font-semibold text-white">Create workspaces</h2>
-            <p className="mt-1 text-sm leading-6 text-gray-500">
+          <div className="mt-6 grid gap-3 md:grid-cols-2">
+          <div className="panel-muted p-4">
+            <p className="eyebrow">Project manager</p>
+            <h2 className="mt-2 text-lg font-semibold text-slate-900">Control delivery workspaces</h2>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
               Launch the project grid, open the create project modal, and manage the workspace list from the left
               sidebar.
             </p>
           </div>
-          <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-300">Employee</p>
-            <h2 className="mt-2 text-lg font-semibold text-white">See accessible projects</h2>
-            <p className="mt-1 text-sm leading-6 text-gray-500">
+          <div className="panel-muted p-4">
+            <p className="eyebrow text-emerald-700">Employee</p>
+            <h2 className="mt-2 text-lg font-semibold text-slate-900">Operate assigned tasks</h2>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
               Sign in and land directly in the same modern project dashboard with the projects available to that user.
             </p>
           </div>
           </div>
         </div>
 
-      <section className="rounded-xl border border-gray-800 bg-gray-950 p-5">
-        <div className="inline-flex rounded-lg border border-gray-800 bg-gray-900 p-1">
+      <section className="panel p-6">
+        <div className="inline-flex rounded-2xl border border-slate-200 bg-slate-50 p-1">
           <button
             type="button"
             onClick={() => setMode('login')}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition ${mode === 'login' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'}`}
+            className={`rounded-xl px-4 py-2 text-sm font-medium transition ${mode === 'login' ? 'bg-cyan-700 text-white' : 'text-slate-600 hover:bg-white'}`}
           >
             Login
           </button>
           <button
             type="button"
             onClick={() => setMode('signup')}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition ${mode === 'signup' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'}`}
+            className={`rounded-xl px-4 py-2 text-sm font-medium transition ${mode === 'signup' ? 'bg-cyan-700 text-white' : 'text-slate-600 hover:bg-white'}`}
           >
             Register
           </button>
@@ -181,7 +188,7 @@ function AuthScreen({ initialError = '' }) {
           ) : null}
 
           {error ? (
-            <div className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
               {error}
             </div>
           ) : null}
@@ -189,7 +196,7 @@ function AuthScreen({ initialError = '' }) {
           <button
             type="submit"
             disabled={loading}
-            className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-primary mt-4 w-full disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Please wait...' : mode === 'login' ? 'Login to project dashboard' : 'Create account'}
           </button>

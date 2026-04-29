@@ -11,6 +11,7 @@ import CreateProjectModal from './components/CreateProjectModal';
 import DashboardOverview from './components/DashboardOverview';
 import DashboardSkeleton from './components/DashboardSkeleton';
 import IssueList from './components/IssueList';
+import IssueReviewPanel from './components/IssueReviewPanel';
 import ProjectTeamPanel from './components/ProjectTeamPanel';
 import ProfileSetup from './components/ProfileSetup';
 import ProjectGrid from './components/ProjectGrid';
@@ -175,7 +176,11 @@ function DashboardApp() {
       return undefined;
     }
 
-    const commentsQuery = query(collection(db, 'comments'), where('issueId', '==', activeIssueId));
+    const commentsQuery = query(
+      collection(db, 'comments'),
+      where('projectId', '==', activeProjectId),
+      where('issueId', '==', activeIssueId),
+    );
 
     const unsubscribe = onSnapshot(
       commentsQuery,
@@ -210,7 +215,7 @@ function DashboardApp() {
   const activeProject = filteredProjects.find((project) => project.id === activeProjectId) ?? filteredProjects[0] ?? null;
   const isAdmin = profile?.role === 'Admin' || profile?.role === 'Project Manager';
   const projectMembers = useMemo(
-    () => users.filter((user) => activeProject?.memberIds?.includes(user.id) && user.role === 'Employee'),
+    () => users.filter((user) => activeProject?.memberIds?.includes(user.id)),
     [activeProject?.memberIds, users],
   );
 
@@ -229,6 +234,7 @@ function DashboardApp() {
     [isAdmin, issues, profile?.id],
   );
   const activeIssue = projectIssues.find((issue) => issue.id === activeIssueId) ?? projectIssues[0] ?? null;
+  const activeIssueAssignee = users.find((user) => user.id === activeIssue?.assigneeId) ?? null;
 
   const handleCreateProject = async (projectData) => {
     if (!profile || !isAdmin) {
@@ -300,6 +306,12 @@ function DashboardApp() {
         projectId: activeProject.id,
         projectKey: activeProject.key,
         createdBy: profile.id,
+        memberReportedDone: false,
+        memberReportedDoneAt: null,
+        memberReportedDoneBy: '',
+        managerConfirmedDone: false,
+        managerConfirmedDoneAt: null,
+        managerConfirmedDoneBy: '',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -354,6 +366,59 @@ function DashboardApp() {
       setActionError(message);
       pushToast('error', 'Comment failed', message);
       throw error;
+    }
+  };
+
+  const handleMemberCompletionToggle = async (issue, checked) => {
+    if (!profile || !issue || issue.assigneeId !== profile.id || isAdmin) {
+      return;
+    }
+
+    setActionError('');
+
+    try {
+      await updateDoc(doc(db, 'issues', issue.id), {
+        memberReportedDone: checked,
+        memberReportedDoneAt: checked ? serverTimestamp() : null,
+        memberReportedDoneBy: checked ? profile.id : '',
+        updatedAt: serverTimestamp(),
+      });
+      pushToast(
+        'success',
+        checked ? 'Completion reported' : 'Completion report cleared',
+        checked ? 'The project manager can now review this task.' : 'This task is back in progress until it is reported again.',
+      );
+    } catch (error) {
+      const message = getFriendlyError(error, 'Unable to update completion report.');
+      setActionError(message);
+      pushToast('error', 'Completion update failed', message);
+    }
+  };
+
+  const handleManagerConfirmationToggle = async (issue, checked) => {
+    if (!profile || !issue || !isAdmin) {
+      return;
+    }
+
+    setActionError('');
+
+    try {
+      await updateDoc(doc(db, 'issues', issue.id), {
+        managerConfirmedDone: checked,
+        managerConfirmedDoneAt: checked ? serverTimestamp() : null,
+        managerConfirmedDoneBy: checked ? profile.id : '',
+        status: checked ? 'Done' : issue.status === 'Done' ? 'In Progress' : issue.status,
+        updatedAt: serverTimestamp(),
+      });
+      pushToast(
+        'success',
+        checked ? 'Task confirmed' : 'Confirmation removed',
+        checked ? 'The task is now marked as manager-approved.' : 'The task was moved back out of confirmed completion.',
+      );
+    } catch (error) {
+      const message = getFriendlyError(error, 'Unable to confirm task completion.');
+      setActionError(message);
+      pushToast('error', 'Confirmation failed', message);
     }
   };
 
@@ -467,7 +532,7 @@ function DashboardApp() {
 
   return (
     <>
-      <div className="grid min-h-screen bg-gray-950 lg:grid-cols-[280px_1fr]">
+      <div className="grid min-h-screen lg:grid-cols-[300px_1fr]">
         <ProjectsSidebar
           currentUser={profile}
           projects={filteredProjects}
@@ -483,53 +548,53 @@ function DashboardApp() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.24, ease: 'easeOut' }}
-            className="mx-auto max-w-7xl rounded-2xl border border-gray-800 bg-gray-900 p-4 shadow-2xl shadow-black/20"
+            className="app-shell mx-auto max-w-[1440px] p-4 lg:p-5"
           >
-          <div className="flex flex-col gap-4 border-b border-gray-800 pb-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-300">Workspace</p>
-                <h1 className="mt-1 text-xl font-semibold text-white">
+          <div className="flex flex-col gap-5 border-b border-slate-200 pb-5 xl:flex-row xl:items-center xl:justify-between">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <p className="eyebrow">Workspace</p>
+                <h1 className="mt-1 text-2xl font-semibold text-slate-900 lg:text-3xl">
                   {activeProject?.name || 'Project dashboard'}
                 </h1>
-                <p className="mt-1 text-sm leading-6 text-gray-500">
-                  Minimal project view for switching projects, assigning work, and moving tasks quickly.
+                <p className="max-w-3xl text-sm leading-7 text-slate-600">
+                  Operational workspace for project delivery, task routing, review checkpoints, and team coordination.
                 </p>
               </div>
               {activeProject ? (
                 <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full border border-gray-800 bg-gray-950 px-2.5 py-1 text-xs text-gray-300">
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 font-mono text-xs text-slate-600">
                     {activeProject.key}
                   </span>
-                  <span className="rounded-full border border-gray-800 bg-gray-950 px-2.5 py-1 text-xs text-gray-300">
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 font-mono text-xs text-slate-600">
                     {activeProject.division || activeProject.team || 'Platform'}
                   </span>
-                  <span className="rounded-full border border-gray-800 bg-gray-950 px-2.5 py-1 text-xs text-gray-300">
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 font-mono text-xs text-slate-600">
                     {activeProject.visibility || 'Private'}
                   </span>
-                  <span className="rounded-full border border-gray-800 bg-gray-950 px-2.5 py-1 text-xs text-gray-300">
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 font-mono text-xs text-slate-600">
                     {projectIssues.length} issues
                   </span>
                 </div>
               ) : null}
             </div>
 
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <label className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Search projects"
-                  className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 pl-10 pr-3 text-sm text-white outline-none transition hover:border-gray-600 focus:ring-2 focus:ring-blue-500 sm:w-64"
+                  className="field-input w-full pl-11 sm:w-72"
                 />
               </label>
               {isAdmin ? (
                 <button
                   type="button"
                   onClick={handleSeedProjects}
-                  className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-200 transition hover:border-gray-600 hover:bg-gray-700"
+                  className="btn-secondary"
                 >
                   Seed projects
                 </button>
@@ -544,7 +609,7 @@ function DashboardApp() {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="mt-4 rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-200"
+                className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
               >
                 {actionError}
               </motion.div>
@@ -569,72 +634,82 @@ function DashboardApp() {
                 onCreateIssue={() => setIsCreateIssueOpen(true)}
                 onMoveIssue={handleMoveIssue}
                 canCreateIssue={isAdmin}
+                isAdmin={isAdmin}
                 activeIssueId={activeIssue?.id ?? null}
                 onSelectIssue={setActiveIssueId}
               />
             </div>
 
             <aside className="space-y-5">
-              <div className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Project details</p>
+              <div className="panel p-5">
+                <p className="eyebrow">Project details</p>
                 {activeProject ? (
                   <>
-                    <h2 className="mt-1 text-lg font-semibold text-white">{activeProject.name}</h2>
-                    <p className="mt-2 text-sm leading-6 text-gray-500">
+                    <h2 className="mt-2 text-xl font-semibold text-slate-900">{activeProject.name}</h2>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">
                       {activeProject.description || 'No description yet for this project workspace.'}
                     </p>
                     <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                      <div className="rounded-xl border border-gray-800 bg-gray-950 p-3">
+                      <div className="panel-muted p-3">
                         <div className="mb-2 flex items-center gap-2 text-blue-300">
                           <Layers3 size={16} />
-                          <span className="text-xs font-semibold uppercase tracking-[0.12em]">Key</span>
+                          <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em]">Key</span>
                         </div>
-                        <p className="text-sm font-semibold text-white">{activeProject.key}</p>
+                        <p className="text-sm font-semibold text-slate-900">{activeProject.key}</p>
                       </div>
-                      <div className="rounded-xl border border-gray-800 bg-gray-950 p-3">
+                      <div className="panel-muted p-3">
                         <div className="mb-2 flex items-center gap-2 text-emerald-300">
                           <Folders size={16} />
-                          <span className="text-xs font-semibold uppercase tracking-[0.12em]">Status</span>
+                          <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em]">Status</span>
                         </div>
-                        <p className="text-sm font-semibold text-white">{activeProject.status || 'Active'}</p>
+                        <p className="text-sm font-semibold text-slate-900">{activeProject.status || 'Active'}</p>
                       </div>
-                      <div className="rounded-xl border border-gray-800 bg-gray-950 p-3">
+                      <div className="panel-muted p-3">
                         <div className="mb-2 flex items-center gap-2 text-cyan-300">
                           <Users2 size={16} />
-                          <span className="text-xs font-semibold uppercase tracking-[0.12em]">Visibility</span>
+                          <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em]">Visibility</span>
                         </div>
-                        <p className="text-sm font-semibold text-white">{activeProject.visibility || 'Private'}</p>
+                        <p className="text-sm font-semibold text-slate-900">{activeProject.visibility || 'Private'}</p>
                       </div>
-                      <div className="rounded-xl border border-gray-800 bg-gray-950 p-3">
+                      <div className="panel-muted p-3">
                         <div className="mb-2 flex items-center gap-2 text-cyan-300">
                           <Building2 size={16} />
-                          <span className="text-xs font-semibold uppercase tracking-[0.12em]">Division</span>
+                          <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em]">Division</span>
                         </div>
-                        <p className="text-sm font-semibold text-white">
+                        <p className="text-sm font-semibold text-slate-900">
                           {activeProject.division || activeProject.team || 'Platform'}
                         </p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.12em] text-gray-500">
+                        <p className="mt-1 font-mono text-xs uppercase tracking-[0.12em] text-slate-500">
                           {activeProject.companyName || 'Sprintforge'}
                         </p>
                       </div>
-                      <div className="rounded-xl border border-gray-800 bg-gray-950 p-3 sm:col-span-2">
+                      <div className="panel-muted p-3 sm:col-span-2">
                         <div className="mb-2 flex items-center gap-2 text-fuchsia-300">
                           <Layers3 size={16} />
-                          <span className="text-xs font-semibold uppercase tracking-[0.12em]">Issues</span>
+                          <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em]">Issues</span>
                         </div>
-                        <p className="text-sm font-semibold text-white">{projectIssues.length}</p>
+                        <p className="text-sm font-semibold text-slate-900">{projectIssues.length}</p>
                       </div>
                     </div>
                   </>
                 ) : (
-                  <p className="mt-3 text-sm text-gray-500">Select a project from the sidebar or create a new one.</p>
+                  <p className="mt-3 text-sm text-slate-500">Select a project from the sidebar or create a new one.</p>
                 )}
               </div>
               <CommentPanel
+                key={activeIssue?.id ?? 'no-issue'}
                 activeIssue={activeIssue}
                 comments={comments}
                 currentUser={profile}
                 onSubmitComment={handleSubmitComment}
+              />
+              <IssueReviewPanel
+                activeIssue={activeIssue}
+                assignee={activeIssueAssignee}
+                currentUser={profile}
+                canConfirm={isAdmin}
+                onToggleMemberCompletion={handleMemberCompletionToggle}
+                onToggleManagerConfirmation={handleManagerConfirmationToggle}
               />
               <ProjectTeamPanel
                 activeProject={activeProject}

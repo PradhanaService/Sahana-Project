@@ -20,25 +20,24 @@ function ProfileSetup({ email, initialName, onSubmit, loading, error }) {
     await onSubmit(form);
   };
 
-  const fieldClassName =
-    'w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white outline-none transition hover:border-gray-600 focus:ring-2 focus:ring-blue-500';
-  const labelClassName = 'block space-y-1 text-sm text-gray-400';
+  const fieldClassName = 'field-input';
+  const labelClassName = 'block space-y-2 text-sm text-slate-600';
 
   return (
-    <div className="grid min-h-screen place-items-center bg-gray-950 p-4">
-      <section className="w-full max-w-2xl rounded-2xl border border-gray-800 bg-gray-900 p-5 shadow-2xl shadow-black/20">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-300">Complete Profile</p>
-        <h1 className="mt-3 text-lg font-semibold text-white">
+    <div className="grid min-h-screen place-items-center p-4">
+      <section className="app-shell w-full max-w-3xl p-5">
+        <p className="eyebrow">Complete profile</p>
+        <h1 className="mt-3 text-2xl font-semibold text-slate-900">
           Finish your workspace access
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-400">
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
           Your Firebase account is valid, but this workspace still needs your Firestore profile before it can open the
           dashboard.
         </p>
 
-        <div className="mt-4 rounded-xl border border-gray-800 bg-gray-950 p-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Signed in as</p>
-          <p className="mt-2 text-base font-medium text-white">{email}</p>
+        <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Signed in as</p>
+          <p className="mt-2 text-base font-medium text-slate-900">{email}</p>
         </div>
 
         <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
@@ -99,7 +98,7 @@ function ProfileSetup({ email, initialName, onSubmit, loading, error }) {
           </label>
 
           {error ? (
-            <div className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
               {error}
             </div>
           ) : null}
@@ -107,7 +106,7 @@ function ProfileSetup({ email, initialName, onSubmit, loading, error }) {
           <button
             type="submit"
             disabled={loading}
-            className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-primary mt-4 w-full disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Saving profile...' : 'Create Firestore profile'}
           </button>
